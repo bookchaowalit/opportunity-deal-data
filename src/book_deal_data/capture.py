@@ -9,6 +9,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 from .cli import resource, timestamp, validate
+from .observability import init_sentry, report_exit
 
 MONTHS = {
     name: number
@@ -229,7 +230,9 @@ def main(argv=None):
 
     if VERSION != 1:
         raise RuntimeError("unsupported shared capture runtime")
-    return run(source_config(selected.source_id), normalize, validate, remaining)
+    source = source_config(selected.source_id)
+    sentry = init_sentry(source["id"])
+    return report_exit(sentry, source["id"], run(source, normalize, validate, remaining))
 
 
 if __name__ == "__main__":
